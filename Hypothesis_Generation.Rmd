@@ -1,0 +1,128 @@
+---
+title: "Hypothesis Generation_ Hyeyeon Kim"
+author: "Hyeyeon Kim"
+date: "5/3/2021"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include = TRUE, message = FALSE)
+library(tidyverse)
+library(sp)
+library(tmap)
+library(tmaptools)
+library(rgdal)
+library(dplyr)
+library(maptools)
+library(gridExtra)
+library(broom)
+library(gpclib)
+library(rgeos)
+```
+
+
+```{r}
+c_data <- read.csv("c_data.csv")
+r_train_data <- read.csv("r_train_data.csv")
+```
+
+# Hypothesis Generation
+
+## Hannah
+
+```{r}
+r_train_data$own_new <- as.integer(r_train_data$own)
+
+# Relationship between the median earnings and poverty level
+ggplot(data = c_data) +
+  geom_point(mapping = aes(x = poverty_level, y = median_earnings)) +
+  ylab("Median Earnings") +
+  labs(title = "Relationship between Poverty Level and Median Earnings")
+
+# Compare the ownership of the house by median earnings
+ggplot() +
+  geom_polygon(data = c_data, aes(fill = median_earnings, x = long, y = lat, group = group), 
+               col = "black") + 
+  geom_point(data = r_train_data, aes(col = own_new, x = long, y = lat, group = group, shape = own), size = 1, alpha = .25)+
+  scale_color_gradient(low="white", high = "black") +
+  theme_void() +
+  coord_map() +
+  labs(title = "Ownership of House Explained by Median Earnings")
+
+
+# Compare the ownership of the house and stories of the house
+ggplot(r_train_data) +
+  geom_boxplot(aes(x = stories, y = own_new, group = own_new)) +
+  ylab("Ownership") +
+  xlab("Stories") +
+  labs(title = "Number of Stories Explained by Ownership")
+
+```
+
+
+\newpage
+
+## Introduction
+
+The testing data set has 1003 observations of 21 variables
+
+## Testing Data
+
+```{r}
+r_test_data <- read.csv("r_test_data.csv")
+```
+
+### Section 1: Own vs. Stories
+
+I was inspired by this graph here:
+
+```{r}
+r_test_data$own_new <- as.integer(r_test_data$own)
+
+ggplot(r_test_data) +
+  geom_bar(aes(x=own_new, group = stories)) +
+  ylab("Stories") +
+  xlab("Ownership") +
+  labs(title = "Relatiosnhip between the number of stories and ownership")
+```
+
+Ownership = 0 means it is not owned by tenants and ownership = 1 means the house is owned.
+
+I did linear regression between two variables, the number of stories and ownership of house.
+
+```{r}
+lm_4 <- lm(data=r_test_data, stories ~ own_new)
+summary(lm_4)
+```
+
+### Section 2: Poverty Level vs. Median Earnings
+
+I was inspired by this graph here:
+
+```{r}
+ggplot(data = c_data) +
+  geom_point(mapping = aes(x = median_earnings, y = poverty_level)) +
+  xlab("Median Earnings") +
+  ylab("Poverty Level") +
+  labs(title = "Relationship between Poverty Level and Median Earnings")
+```
+
+I assumed the who report higher median earnings have lower poverty level. This scatter plot carefully shows us that who have less median earnings are suffering poverty more. We can more clearly see whether there is a significant relationship between poverty level and median earnings. 
+
+I did linear regression between two variables, poverty level and median earnings. 
+
+```{r}
+lm_4_1 <- lm(data=c_data, poverty_level ~ median_earnings)
+summary(lm_4_1)
+```
+
+
+### Observations
+
+For the own vs. stories, we can conclude that there is no significant relationship between the number of stories and the ownership of the house even if the graph shows higher stories' houses are more owned by people. 
+
+For the poverty level vs. median earnings, we concluded that there are some relationship but linear model shows that there are not significant relationship between those two. 
+
+
